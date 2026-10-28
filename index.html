@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aria Solutions Dashboard — Architecture & Analytics Map</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f6fa;
+  color: #1a1f36;
+  padding: 40px 32px;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+header { margin-bottom: 40px; }
+header .label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #6b7194; margin-bottom: 6px;
+}
+header h1 { font-size: 24px; font-weight: 700; color: #1a1f36; }
+header p { margin-top: 6px; font-size: 14px; color: #6b7194; }
+.date-badge {
+  display: inline-block; margin-top: 12px;
+  background: #e8eaf5; color: #4a5296;
+  font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+}
+
+/* ── FLOW ── */
+.flow {
+  display: flex; align-items: flex-start; gap: 0;
+  overflow-x: auto; padding-bottom: 8px; margin-bottom: 40px;
+}
+.stage { display: flex; flex-direction: column; align-items: center; min-width: 180px; }
+.stage-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #9ba3c4; margin-bottom: 12px; text-align: center;
+}
+.connector { display: flex; align-items: center; padding-top: 48px; padding-left: 4px; padding-right: 4px; }
+.connector svg { display: block; }
+
+.card {
+  background: #fff; border-radius: 12px; border: 1.5px solid #e3e6f0;
+  padding: 18px 20px; width: 168px;
+  box-shadow: 0 2px 8px rgba(26,31,54,0.06); position: relative;
+}
+.card .icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 10px;
+}
+.card h3 { font-size: 13px; font-weight: 700; color: #1a1f36; margin-bottom: 4px; line-height: 1.3; }
+.card p { font-size: 11px; color: #6b7194; line-height: 1.5; }
+.card-bar { position: absolute; top: 0; left: 0; width: 4px; height: 100%; border-radius: 12px 0 0 12px; }
+
+.theme-slack .icon   { background: #4a154b20; color: #4a154b; }
+.theme-slack         { border-color: #4a154b30; }
+.theme-slack .card-bar { background: #4a154b; }
+.theme-workflow .icon { background: #e8773420; color: #c45d1e; }
+.theme-workflow       { border-color: #e8773440; }
+.theme-workflow .card-bar { background: #e87734; }
+.theme-regrello .icon { background: #0055b320; color: #0055b3; }
+.theme-regrello       { border-color: #0055b340; }
+.theme-regrello .card-bar { background: #0055b3; }
+.theme-gas .icon     { background: #18816420; color: #188164; }
+.theme-gas           { border-color: #18816440; }
+.theme-gas .card-bar { background: #188164; }
+.theme-output .icon  { background: #6e40c920; color: #6e40c9; }
+.theme-output        { border-color: #6e40c940; }
+.theme-output .card-bar { background: #6e40c9; }
+.trigger-label {
+  font-size: 10px; font-weight: 600; color: #e87734;
+  text-align: center; margin-top: 6px; width: 100%;
+}
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  display: flex; align-items: center; gap: 12px; margin: 36px 0 20px;
+}
+.section-divider .line { flex: 1; height: 1px; background: #dde1ee; }
+.section-divider .title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #6b7194; white-space: nowrap;
+}
+
+/* ── ANALYTICS GRID ── */
+.analytics-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px; margin-bottom: 20px;
+}
+
+.analytics-card {
+  background: #fff; border-radius: 12px; border: 1.5px solid #e3e6f0;
+  padding: 18px 20px; box-shadow: 0 2px 6px rgba(26,31,54,0.05);
+  position: relative;
+}
+.analytics-card .ac-header {
+  display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;
+}
+.analytics-card .ac-title {
+  font-size: 13px; font-weight: 700; color: #1a1f36; line-height: 1.3;
+}
+.analytics-card .ac-source {
+  font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+  white-space: nowrap; margin-left: 8px; flex-shrink: 0;
+}
+.src-slack   { background: #4a154b15; color: #4a154b; }
+.src-regrello{ background: #0055b315; color: #0055b3; }
+.src-both    { background: #18816415; color: #188164; }
+.src-future  { background: #e8773420; color: #b85a10; }
+
+.analytics-card .metric-row {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+}
+.mini-stat {
+  background: #f5f6fa; border-radius: 8px; padding: 8px 12px;
+  display: flex; flex-direction: column; min-width: 72px;
+}
+.mini-stat .n {
+  font-size: 20px; font-weight: 800; color: #1a1f36; line-height: 1;
+}
+.mini-stat .l { font-size: 10px; color: #6b7194; margin-top: 2px; }
+.mini-stat.warn .n { color: #c9424a; }
+.mini-stat.caution .n { color: #c45d1e; }
+.mini-stat.ok .n { color: #188164; }
+
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.bullet-list li {
+  font-size: 12px; color: #3d4466; line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 10px; background: #f5f6fa; border-radius: 6px;
+}
+.bullet-list li .b { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.bullet-list li strong { color: #1a1f36; }
+
+/* ── NEEDS-EXTRA badge ── */
+.needs-extra {
+  margin-top: 12px; background: #fff8ed; border: 1px solid #f0d08050;
+  border-radius: 8px; padding: 8px 12px;
+  font-size: 11px; color: #8a6a00; line-height: 1.5;
+}
+.needs-extra strong { color: #6b4f00; }
+
+/* ── OVERDUE TABLE ── */
+.overdue-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 12px; }
+.overdue-table th {
+  text-align: left; font-weight: 700; color: #6b7194;
+  padding: 6px 8px; border-bottom: 1.5px solid #e3e6f0; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.overdue-table td { padding: 7px 8px; border-bottom: 1px solid #f0f1f7; color: #3d4466; }
+.overdue-table tr:last-child td { border-bottom: none; }
+.tag {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+}
+.tag-blocked  { background: #fde8e9; color: #c9424a; }
+.tag-inprog   { background: #e8f0fe; color: #0055b3; }
+.tag-notstart { background: #eef0f8; color: #6b7194; }
+.tag-p1       { background: #fdecea; color: #c00; font-size: 9px; }
+.tag-onhold   { background: #fff0e5; color: #b85a10; }
+
+/* ── HEATMAP ── */
+.heatmap { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 12px; }
+.heatmap th {
+  padding: 5px 8px; font-size: 10px; font-weight: 700; color: #6b7194;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.heatmap td { padding: 6px 8px; text-align: center; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.heatmap .row-label { text-align: left; color: #3d4466; font-weight: 600; }
+.cell-0  { background: #f0f1f7; color: #9ba3c4; }
+.cell-low{ background: #dce7fd; color: #0055b3; }
+.cell-mid{ background: #b3d1f8; color: #003f8a; }
+.cell-hi { background: #5596e6; color: #fff; }
+.cell-warn{ background: #fde8e9; color: #c9424a; }
+
+/* ── STATUS SNAPSHOT ── */
+.snapshot {
+  background: #fff; border-radius: 12px; border: 1.5px solid #e3e6f0;
+  padding: 20px 24px; box-shadow: 0 2px 8px rgba(26,31,54,0.04);
+  margin-bottom: 20px;
+}
+.snapshot h2 {
+  font-size: 13px; font-weight: 700; color: #1a1f36; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.status-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.status-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: #f5f6fa; border-radius: 20px; padding: 6px 14px;
+  font-size: 12px; font-weight: 600; color: #3d4466;
+}
+.status-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-done       { background: #188164; }
+.dot-inprog     { background: #0055b3; }
+.dot-notstarted { background: #9ba3c4; }
+.dot-blocked    { background: #c9424a; }
+.dot-onhold     { background: #e87734; }
+
+/* ── DECISION ── */
+.decision {
+  background: #fffbf0; border-radius: 12px;
+  border: 1.5px dashed #e8c73460; padding: 16px 20px; margin-top: 20px;
+}
+.decision h3 { font-size: 12px; font-weight: 700; color: #8a6a00; margin-bottom: 8px; }
+.decision p { font-size: 12px; color: #6b5a20; line-height: 1.6; }
+
+/* ── TIME NOTE ── */
+.time-note {
+  background: #f0f7ff; border-radius: 12px; border: 1.5px solid #b3d1f850;
+  padding: 16px 20px; margin-top: 20px;
+}
+.time-note h3 { font-size: 12px; font-weight: 700; color: #003f8a; margin-bottom: 6px; }
+.time-note p { font-size: 12px; color: #2a5080; line-height: 1.6; }
+
+footer { margin-top: 32px; font-size: 11px; color: #9ba3c4; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Solutions AI Studio</div>
+  <h1>Aria Solutions Dashboard — Architecture &amp; Analytics Map</h1>
+  <p>Proposed data flow, analytics scope, and data sources for Priscila's review</p>
+  <span class="date-badge">Draft · Oct 27, 2026</span>
+</header>
+
+<!-- ── FLOW ── -->
+<div class="flow">
+  <div class="stage">
+    <div class="stage-label">1 · Data Source</div>
+    <div class="card theme-slack">
+      <div class="card-bar"></div>
+      <div class="icon">📋</div>
+      <h3>Slack List</h3>
+      <p>Solutions AI Studio — Aria Solution Roadmap<br><br>110 items · status, assignee, due date, priority, category</p>
+    </div>
+  </div>
+  <div class="connector">
+    <svg width="40" height="20" viewBox="0 0 40 20"><line x1="0" y1="10" x2="32" y2="10" stroke="#c5cae0" stroke-width="1.5"/><polygon points="32,5 40,10 32,15" fill="#c5cae0"/></svg>
+  </div>
+  <div class="stage">
+    <div class="stage-label">2 · Automation</div>
+    <div class="card theme-workflow">
+      <div class="card-bar"></div>
+      <div class="icon">⚡</div>
+      <h3>Slack Workflow</h3>
+      <p>Triggered when "Completed = Yes" is selected on any list item</p>
+    </div>
+    <div class="trigger-label">Trigger: Completed → Yes</div>
+  </div>
+  <div class="connector">
+    <svg width="40" height="20" viewBox="0 0 40 20"><line x1="0" y1="10" x2="32" y2="10" stroke="#c5cae0" stroke-width="1.5"/><polygon points="32,5 40,10 32,15" fill="#c5cae0"/></svg>
+  </div>
+  <div class="stage">
+    <div class="stage-label">3 · Platform</div>
+    <div class="card theme-regrello">
+      <div class="card-bar"></div>
+      <div class="icon">🔷</div>
+      <h3>Aria Solutions</h3>
+      <p>Regrello workspace — status updated automatically<br><br>Source of: run counts, issue data, usage ranking</p>
+    </div>
+  </div>
+  <div class="connector">
+    <svg width="40" height="20" viewBox="0 0 40 20"><line x1="0" y1="10" x2="32" y2="10" stroke="#c5cae0" stroke-width="1.5"/><polygon points="32,5 40,10 32,15" fill="#c5cae0"/></svg>
+  </div>
+  <div class="stage">
+    <div class="stage-label">4 · Dashboard</div>
+    <div class="card theme-gas">
+      <div class="card-bar"></div>
+      <div class="icon">📊</div>
+      <h3>GAS Dashboard</h3>
+      <p>Google Apps Script web app — pulls from Aria Solutions API + Slack List API</p>
+    </div>
+  </div>
+  <div class="connector">
+    <svg width="40" height="20" viewBox="0 0 40 20"><line x1="0" y1="10" x2="32" y2="10" stroke="#c5cae0" stroke-width="1.5"/><polygon points="32,5 40,10 32,15" fill="#c5cae0"/></svg>
+  </div>
+  <div class="stage">
+    <div class="stage-label">5 · Team Output</div>
+    <div class="card theme-output">
+      <div class="card-bar"></div>
+      <div class="icon">🔔</div>
+      <h3>Slack Digest</h3>
+      <p>Weekly post to #regrello-aria-solutions with KPIs + link to full dashboard</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── CURRENT STATE SNAPSHOT ── -->
+<div class="snapshot">
+  <h2>📍 Current State Snapshot — Oct 27, 2026</h2>
+  <div class="status-row">
+    <div class="status-chip"><span class="dot dot-notstarted"></span>Not started · 65</div>
+    <div class="status-chip"><span class="dot dot-done"></span>Done · 23</div>
+    <div class="status-chip"><span class="dot dot-inprog"></span>In progress · 9</div>
+    <div class="status-chip"><span class="dot dot-blocked"></span>Blocked · 2</div>
+    <div class="status-chip"><span class="dot dot-onhold"></span>On Hold · 1</div>
+    <div class="status-chip" style="background:#fff3f3;color:#c9424a;">⚠️ Overdue · 10</div>
+    <div class="status-chip" style="background:#fff3f3;color:#c9424a;">🔴 P1 Not Done · 6</div>
+    <div class="status-chip" style="background:#f0f7ff;color:#0055b3;">📦 Total · 110</div>
+    <div class="status-chip" style="background:#fff8ed;color:#b85a10;">📅 Due Oct 30 · 10 items</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SECTION 1 · DELIVERY & PIPELINE HEALTH
+════════════════════════════════════════════════════════ -->
+<div class="section-divider">
+  <div class="line"></div>
+  <div class="title">1 · Delivery &amp; Pipeline Health</div>
+  <div class="line"></div>
+</div>
+
+<div class="analytics-grid">
+
+  <!-- Burndown & Throughput -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Burndown &amp; Throughput</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat warn"><span class="n">65</span><span class="l">Not Started</span></div>
+      <div class="mini-stat caution"><span class="n">9</span><span class="l">In Progress</span></div>
+      <div class="mini-stat ok"><span class="n">23</span><span class="l">Done</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#0055b3"></span>Weekly bar chart: solutions moving Not started → In progress → Done</li>
+      <li><span class="b" style="background:#0055b3"></span>Throughput rate: how many reach Done per week on average</li>
+      <li><span class="b" style="background:#0055b3"></span>Uses Status + Due date fields as proxy for weekly movement</li>
+    </ul>
+  </div>
+
+  <!-- Forecast Against Due Dates -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Forecast Against Due Dates</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat warn"><span class="n">24</span><span class="l">Due Oct 30–Nov 27</span></div>
+      <div class="mini-stat warn"><span class="n">10</span><span class="l">Due Oct 30</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#c9424a"></span><strong>10 items due Oct 30</strong> — most are Not started today</li>
+      <li><span class="b" style="background:#e87734"></span>Forecast: at current throughput rate, how many will realistically land</li>
+      <li><span class="b" style="background:#0055b3"></span>Timeline chart showing planned vs. projected completion</li>
+    </ul>
+  </div>
+
+  <!-- Slippage Report -->
+  <div class="analytics-card" style="grid-column: span 2;">
+    <div class="ac-header">
+      <div class="ac-title">Slippage Report — 10 Overdue Items</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <table class="overdue-table">
+      <thead>
+        <tr>
+          <th>Solution</th>
+          <th>Due</th>
+          <th>Days Overdue</th>
+          <th>Status</th>
+          <th>Priority</th>
+          <th>Assignee</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Contract Management</td><td>Sep 4</td><td style="color:#c9424a;font-weight:700;">53</td><td><span class="tag tag-blocked">Blocked</span></td><td><span class="tag tag-p1">P1</span></td><td>—</td></tr>
+        <tr><td>PTD Conditions Clearance Triage</td><td>Sep 25</td><td style="color:#c9424a;font-weight:700;">32</td><td><span class="tag tag-inprog">In progress</span></td><td><span class="tag tag-p1">P1</span></td><td>—</td></tr>
+        <tr><td>NDA Processing</td><td>Sep 11</td><td style="color:#c9424a;font-weight:700;">46</td><td><span class="tag tag-blocked">Blocked</span></td><td>—</td><td>—</td></tr>
+        <tr><td>Commercial Customer &amp; Account Onboarding</td><td>Sep 4</td><td style="color:#c9424a;font-weight:700;">53</td><td><span class="tag tag-onhold">On Hold</span></td><td>—</td><td>—</td></tr>
+        <tr><td>Customer Onboarding</td><td>Sep 18</td><td style="color:#c9424a;font-weight:700;">39</td><td><span class="tag tag-notstart">Not started</span></td><td>—</td><td>—</td></tr>
+        <tr><td>Contract Expiration Management</td><td>Sep 18</td><td style="color:#c9424a;font-weight:700;">39</td><td><span class="tag tag-inprog">In progress</span></td><td>—</td><td>—</td></tr>
+        <tr><td>PO &amp; Payment Term Exceptions</td><td>Sep 18</td><td style="color:#c9424a;font-weight:700;">39</td><td><span class="tag tag-inprog">In progress</span></td><td>—</td><td>—</td></tr>
+        <tr><td>Supplier Capacity Planning</td><td>Oct 2</td><td style="color:#e87734;font-weight:700;">25</td><td><span class="tag tag-inprog">In progress</span></td><td>P3</td><td>—</td></tr>
+        <tr><td>Third-Party Risk Management</td><td>Oct 9</td><td style="color:#e87734;font-weight:700;">18</td><td><span class="tag tag-notstart">Not started</span></td><td>—</td><td>—</td></tr>
+        <tr><td>Reinsurance Reconciliation</td><td>Oct 16</td><td style="color:#e87734;font-weight:700;">11</td><td><span class="tag tag-notstart">Not started</span></td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:#6b7194;margin-top:8px;">Assignee column will populate once Slack List API is connected. Days overdue calculated from today Oct 27.</p>
+  </div>
+
+  <!-- Blocker Tracker -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Blocker Tracker</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat warn"><span class="n">2</span><span class="l">Blocked</span></div>
+      <div class="mini-stat caution"><span class="n">1</span><span class="l">On Hold</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#c9424a"></span><strong>Contract Management</strong> — Blocked · 53 days · P1</li>
+      <li><span class="b" style="background:#c9424a"></span><strong>NDA Processing</strong> — Blocked · 46 days</li>
+      <li><span class="b" style="background:#e87734"></span><strong>Commercial Customer &amp; Account Onboarding</strong> — On Hold · 53 days</li>
+      <li><span class="b" style="background:#6b7194"></span>Dashboard will show who needs to unblock each item (via Assignee field)</li>
+    </ul>
+  </div>
+
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SECTION 2 · PRIORITIZATION QUALITY
+════════════════════════════════════════════════════════ -->
+<div class="section-divider">
+  <div class="line"></div>
+  <div class="title">2 · Prioritization Quality</div>
+  <div class="line"></div>
+</div>
+
+<div class="analytics-grid">
+
+  <!-- Priority Coverage -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Priority Coverage</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat warn"><span class="n">80</span><span class="l">No Priority Set</span></div>
+      <div class="mini-stat"><span class="n">10</span><span class="l">P1</span></div>
+      <div class="mini-stat"><span class="n">10</span><span class="l">P2 + P3</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#c9424a"></span><strong>73% of items have no priority</strong> — flagged in the dashboard</li>
+      <li><span class="b" style="background:#0055b3"></span>Donut chart: P1 / P2 / P3 / Unset breakdown</li>
+      <li><span class="b" style="background:#0055b3"></span>Clickable list of 80 unset items for quick triage</li>
+    </ul>
+  </div>
+
+  <!-- Rank vs Priority vs Status -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Rank vs. Priority vs. Status</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat warn"><span class="n">6</span><span class="l">P1 Not Done</span></div>
+      <div class="mini-stat"><span class="n">73</span><span class="l">Items with Rank</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#c9424a"></span><strong>6 P1s not Done:</strong> Car Loans, Fuel Incentive Payment, Reimagined Loan QC, Supplier Scorecard, Contract Management, PTD Clearance</li>
+      <li><span class="b" style="background:#e87734"></span>High-ranked items (top 10 by Rank) that are still Not started</li>
+      <li><span class="b" style="background:#0055b3"></span>Scatter plot: Rank vs. Status for visual misalignment</li>
+    </ul>
+  </div>
+
+  <!-- Data Hygiene Score -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Data Hygiene Score</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat warn"><span class="n">26</span><span class="l">No Assignee</span></div>
+      <div class="mini-stat warn"><span class="n">43</span><span class="l">No Due Date</span></div>
+      <div class="mini-stat caution"><span class="n">36</span><span class="l">No Context</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#c9424a"></span>Completeness score per item (0–100%) across all required fields</li>
+      <li><span class="b" style="background:#e87734"></span>"Completed" checkbox is ticked on only 6 items but Status shows 23 Done — <strong>out of sync</strong></li>
+      <li><span class="b" style="background:#0055b3"></span>Per-owner hygiene breakdown to surface who needs to clean up their items</li>
+    </ul>
+  </div>
+
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SECTION 3 · PORTFOLIO MIX
+════════════════════════════════════════════════════════ -->
+<div class="section-divider">
+  <div class="line"></div>
+  <div class="title">3 · Portfolio Mix</div>
+  <div class="line"></div>
+</div>
+
+<div class="analytics-grid">
+
+  <!-- Segment & Category Heatmap -->
+  <div class="analytics-card" style="grid-column: span 2;">
+    <div class="ac-header">
+      <div class="ac-title">Segment &amp; Category Coverage Heatmap (Category × Status)</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <table class="heatmap">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Category</th>
+          <th>Not Started</th>
+          <th>In Progress</th>
+          <th>Done</th>
+          <th>Blocked/Hold</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="row-label">Quality</td><td class="cell-mid">7</td><td class="cell-low">2</td><td class="cell-low">2</td><td class="cell-0">0</td><td>11</td></tr>
+        <tr><td class="row-label">Procurement</td><td class="cell-mid">6</td><td class="cell-low">2</td><td class="cell-low">1</td><td class="cell-warn">1</td><td>10</td></tr>
+        <tr><td class="row-label">Lending</td><td class="cell-mid">6</td><td class="cell-low">2</td><td class="cell-low">2</td><td class="cell-0">0</td><td>10</td></tr>
+        <tr><td class="row-label">Supplier Performance &amp; Compliance</td><td class="cell-mid">6</td><td class="cell-low">1</td><td class="cell-low">2</td><td class="cell-0">0</td><td>9</td></tr>
+        <tr><td class="row-label">Commercial &amp; Finance</td><td class="cell-mid">5</td><td class="cell-low">2</td><td class="cell-low">2</td><td class="cell-0">0</td><td>9</td></tr>
+        <tr><td class="row-label">Insurance</td><td class="cell-mid">5</td><td class="cell-low">1</td><td class="cell-low">2</td><td class="cell-0">0</td><td>8</td></tr>
+        <tr><td class="row-label">Public Sector (all)</td><td class="cell-warn">1</td><td class="cell-0">0</td><td class="cell-0">0</td><td class="cell-0">0</td><td class="cell-warn">1</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:#6b7194;margin-top:8px;">Values are estimated from proportional distribution. Live dashboard will pull exact numbers. Red = thin coverage or all stalled.</p>
+  </div>
+
+  <!-- Lifecycle Mix -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Lifecycle Mix</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat"><span class="n">65</span><span class="l">New</span></div>
+      <div class="mini-stat"><span class="n">15</span><span class="l">PoC to Aria</span></div>
+      <div class="mini-stat ok"><span class="n">14</span><span class="l">Original Aria</span></div>
+      <div class="mini-stat caution"><span class="n">6</span><span class="l">Enhance</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#0055b3"></span>Track PoC → Aria promotion rate: of 15 PoC to Aria items, how many reach Done?</li>
+      <li><span class="b" style="background:#188164"></span>Funnel view: New → PoC to Aria → Original Aria Solution</li>
+    </ul>
+  </div>
+
+  <!-- Workflow Adoption -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Lifecycle Workflow Adoption</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat ok"><span class="n">10</span><span class="l">Workflow = Yes</span></div>
+      <div class="mini-stat warn"><span class="n">100</span><span class="l">Workflow = No</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#c9424a"></span><strong>91% of items have not started the Lifecycle Workflow</strong></li>
+      <li><span class="b" style="background:#188164"></span>Cycle time comparison: items with Workflow = Yes vs. No (do they complete faster?)</li>
+      <li><span class="b" style="background:#0055b3"></span>Candidate list: items in progress where Workflow is still No</li>
+    </ul>
+  </div>
+
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SECTION 4 · TEAM CAPACITY
+════════════════════════════════════════════════════════ -->
+<div class="section-divider">
+  <div class="line"></div>
+  <div class="title">4 · Team Capacity</div>
+  <div class="line"></div>
+</div>
+
+<div class="analytics-grid">
+
+  <!-- Load Per Assignee -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Load Per Assignee</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#0055b3"></span>5 assignees · 9–15 open items each</li>
+      <li><span class="b" style="background:#0055b3"></span>Per-owner breakdown: open items / P1 count / overdue count</li>
+      <li><span class="b" style="background:#c9424a"></span>Diego Lozoya · 10 items owned</li>
+      <li><span class="b" style="background:#0055b3"></span>Stacked bar: each owner's items by status (Done / In progress / Not started / Blocked)</li>
+    </ul>
+  </div>
+
+  <!-- Unassigned Risk -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Unassigned Risk</div>
+      <span class="ac-source src-slack">Slack List</span>
+    </div>
+    <div class="metric-row">
+      <div class="mini-stat warn"><span class="n">26</span><span class="l">No Owner</span></div>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#c9424a"></span><strong>26 items have no assignee</strong> — 24% of the portfolio</li>
+      <li><span class="b" style="background:#e87734"></span>Unassigned items filtered by priority and due date to surface the highest-risk ones first</li>
+      <li><span class="b" style="background:#0055b3"></span>Quick-assign action from the dashboard (stretch goal)</li>
+    </ul>
+  </div>
+
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SECTION 5 · LINKING TO OUTCOMES  (needs extra sources)
+════════════════════════════════════════════════════════ -->
+<div class="section-divider">
+  <div class="line"></div>
+  <div class="title">5 · Linking to Outcomes — Needs Extra Sources</div>
+  <div class="line"></div>
+</div>
+
+<div class="analytics-grid">
+
+  <!-- Demo & POC Usage -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Demo &amp; POC Usage</div>
+      <span class="ac-source src-regrello">Aria Solutions API</span>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#0055b3"></span>Most-run solutions by starts (Fernando's Oct 22 ranking is the seed — 34 solutions)</li>
+      <li><span class="b" style="background:#0055b3"></span>Solutions with the most issues / errors</li>
+      <li><span class="b" style="background:#9ba3c4"></span>Least-used solutions (candidates for retirement)</li>
+      <li><span class="b" style="background:#0055b3"></span>Solutions using mock API calls vs. real ones (flag for Systems Agent replacement)</li>
+    </ul>
+    <div class="needs-extra"><strong>Requires:</strong> Aria Solutions API access + Demo Guideline Companion run logs</div>
+  </div>
+
+  <!-- Customer Demand -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Customer Demand Mapping</div>
+      <span class="ac-source src-future">Future Phase</span>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#e87734"></span>Join Salesforce opportunities and Use Case records to roadmap items</li>
+      <li><span class="b" style="background:#e87734"></span>Example: Amazon request tied to a specific solution + $1.5M Stage 02 opportunity</li>
+      <li><span class="b" style="background:#e87734"></span>Shows whether highest-ranked items match actual customer pipeline</li>
+    </ul>
+    <div class="needs-extra"><strong>Requires:</strong> Salesforce CRM opportunity data + Use Case record access</div>
+  </div>
+
+  <!-- Support & Incident Signals -->
+  <div class="analytics-card">
+    <div class="ac-header">
+      <div class="ac-title">Support &amp; Incident Signals</div>
+      <span class="ac-source src-future">Future Phase</span>
+    </div>
+    <ul class="bullet-list">
+      <li><span class="b" style="background:#e87734"></span>Tie Incident Navigator cases to solutions to spot which generate the most support load</li>
+      <li><span class="b" style="background:#e87734"></span>Solutions with high incident rate → candidates for stability work or retire/replace</li>
+    </ul>
+    <div class="needs-extra"><strong>Requires:</strong> AFO Incident Navigator case data joined to solution IDs</div>
+  </div>
+
+</div>
+
+
+<!-- ── TIME-BASED NOTE ── -->
+<div class="time-note">
+  <h3>⏱ Time-Based Views — Requires a Weekly Snapshot Job</h3>
+  <p>
+    The Slack List gives only a current snapshot, so trend analytics (burndown velocity, cycle time, "what changed this week") require a weekly scheduled script to save a snapshot to Google Sheets.
+    A GAS time trigger running every Sunday would unlock: weekly digest of what moved, cycle time per solution, slippage trend, and throughput rate over time.
+    This is a one-time setup and feeds the Slack digest automatically.
+  </p>
+</div>
+
+<!-- ── OPEN DECISION ── -->
+<div class="decision">
+  <h3>⚡ Open Decision — Pending Feedback</h3>
+  <p>
+    <strong>Dashboard location:</strong> GAS web app (more flexibility, richer analytics, shareable link) vs. Slack-native (team already lives there, less setup).
+    Recommended path: <strong>GAS dashboard + weekly Slack digest post</strong> — best of both.
+    Sections 1–4 can be built now from the Slack List API.
+    Section 5 (Outcomes) requires Aria Solutions API validation before build begins.
+  </p>
+</div>
+
+<footer>Solutions AI Studio · Diego Lozoya · Oct 27, 2026 · Draft for feedback</footer>
+
+</body>
+</html>
